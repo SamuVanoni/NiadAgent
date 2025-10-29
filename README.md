@@ -30,6 +30,12 @@ Todos os componentes são **distribuídos em containers Docker**, facilitando **
 
 ---
 
+## Arquitetura do Projeto
+
+![Arquitetura do projeto](./Arquitetura.jpeg)
+
+---
+
 ## 🧱 Justificativa da Arquitetura Utilizada
 
 A arquitetura foi projetada para atender aos requisitos de um **sistema distribuído moderno, seguro e escalável**, utilizando múltiplos agentes de IA de forma **orquestrada e independente**.
