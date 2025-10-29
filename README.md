@@ -32,7 +32,7 @@ Todos os componentes são **distribuídos em containers Docker**, facilitando **
 
 ## Arquitetura do Projeto
 
-![Arquitetura do projeto](./Arquitetura.jpeg)
+![Arquitetura do projeto](./Arquitetura.pdf)
 
 ---
 
