@@ -32,7 +32,7 @@ Todos os componentes são **distribuídos em containers Docker**, facilitando **
 
 ## Arquitetura do Projeto
 
-![Arquitetura do projeto](./Arquitetura.pdf)
+![Arquitetura do projeto](./assets/Visao_Pre-Modelagem_de_Ameacas.jpg)
 
 ---
 
