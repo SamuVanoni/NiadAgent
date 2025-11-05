@@ -1,10 +1,17 @@
 # 🧠 Sistema Distribuído para Análise Inteligente de Áudios de Reuniões
 
-Este repositório contém o sistema desenvolvido pelo grupo de estudos **NIAD (Núcleo de Inteligência Artificial e Ciência de Dados)** como projeto acadêmico da disciplina **Sistemas Distribuídos** da **UFLA**.
+Este repositório contém o sistema desenvolvido para o núcleo de estudos **NIAD (Núcleo de Inteligência Artificial e Ciência de Dados)** como projeto acadêmico da disciplina **Sistemas Distribuídos** da **UFLA**.
 
 O objetivo do sistema é realizar a **análise inteligente de áudios de reuniões recebidos via Telegram**, utilizando **múltiplos agentes de Inteligência Artificial** orquestrados em **microserviços containerizados**.
 
 ---
+
+## 🧑‍💻 Desenvolvedores:
+
+- [Gabriel Fagundes](https://github.com/gabrafo)
+- [Gilmar Filho](https://github.com/gilmar-filho)
+- [João Marcus]()
+- [Samuel Vanoni](https://github.com/SamuVanoni)
 
 ## 🚀 Principais Funcionalidades
 
@@ -14,11 +21,11 @@ O **bot** atua como interface principal do sistema, recebendo áudios de reuniõ
 
 ### 🎙️ Transcrição de Áudio (Whisper)
 
-Microserviço **local e containerizado**, responsável por converter áudios em texto com o modelo open source **Whisper**, garantindo **privacidade e eficiência** no processamento.
+Microserviço **local e containerizado**, responsável por converter áudios em texto com o modelo open source **Whisper**, garantindo **privacidade e eficiência** no processamento inicial.
 
-### 🧩 Vetorização e Consulta Inteligente (LangChain + Llama)
+### 🧩 Orquestração RAG (LangChain + API do Gemini)
 
-Microserviço de **RAG (Retrieval-Augmented Generation)** que executa a **vetorização dos textos**, **busca semântica**, **sumarização dos tópicos principais** e **geração de respostas inteligentes** usando **LLMs como Llama**.
+Microserviço de orquestração **RAG (Retrieval-Augmented Generation)**. Utiliza o **LangChain** para gerenciar o fluxo, vetorizar textos e construir prompts, e se conecta à **API do Gemini** (um LLM remoto) para realizar a **sumarização inteligente** e geração de respostas.
 
 ### 🌐 API Gateway (Express.js)
 
@@ -32,7 +39,7 @@ Todos os componentes são **distribuídos em containers Docker**, facilitando **
 
 ## Arquitetura do Projeto
 
-![Arquitetura do projeto](./assets/Visao_Pre-Modelagem_de_Ameacas.jpg)
+![Arquitetura do projeto](./docs/assets/Visao_Pre-Modelagem_de_Ameacas.jpg)
 
 ---
 
@@ -42,11 +49,10 @@ A arquitetura foi projetada para atender aos requisitos de um **sistema distribu
 
 O uso de um **API Gateway** como controlador central permite o **desacoplamento lógico** entre os módulos, simplificando manutenção, escalabilidade e atualizações dos microserviços.
 
-A separação dos agentes de IA em **serviços distintos** — um dedicado à **transcrição (Whisper)** e outro à **vetorização/RAG (LangChain + Llama)** — cumpre os requisitos acadêmicos e oferece **flexibilidade para evolução tecnológica**, como a substituição ou atualização dos modelos de linguagem no futuro.
+A separação dos agentes de IA em **serviços distintos** — um **agente local (Whisper)** para transcrição de áudio e um **orquestrador (LangChain)** que consome uma **IA remota (API do Gemini)** para sumarização — cumpre os requisitos acadêmicos de um sistema híbrido (local/remoto) e oferece **flexibilidade para evolução tecnológica**.
 
-O **Bot do Telegram** foi escolhido por sua acessibilidade e ampla adoção, tornando a interação com o sistema intuitiva.
-O uso de **containers Docker** garante **isolamento, reprodutibilidade e portabilidade**, permitindo fácil implantação em diversos ambientes.
+O **Bot do Telegram** foi escolhido por sua acessibilidade e ampla adoção, tornando a interação com o sistema intuitiva. O uso de **containers Docker** garante **isolamento, reprodutibilidade e portabilidade**, permitindo fácil implantação em diversos ambientes.
 
-Além disso, as tecnologias adotadas são **gratuitas, open source e bem documentadas**, o que reduz a complexidade de desenvolvimento sem comprometer a robustez e a inovação do sistema.
+Além disso, a maior parte das tecnologias adotadas (**Docker, LangChain, Whisper, Express.js**) é **gratuita, open source e bem documentada**. O uso de uma API externa (Gemini) expõe o sistema a um modelo de ponta, mantendo a complexidade de infraestrutura baixa e focando no desafio de orquestração.
 
-Por fim, o **desenho modular** favorece a aplicação de **conceitos de segurança, validação de problema e documentação arquitetônica**, além de servir como **base sólida para futuras melhorias**, expansão de funcionalidades e integração de novos agentes de IA.
+Por fim, o **desenho modular** favorece a aplicação de **conceitos de segurança** (como a modelagem de ameaças e a gestão de segredos), **validação de problema e documentação arquitetônica**, além de servir como **base sólida para futuras melhorias**, expansão de funcionalidades e integração de novos agentes de IA.
