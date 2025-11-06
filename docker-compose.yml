@@ -16,6 +16,13 @@ services:
       - API_GATEWAY_URL=http://api-gateway:8080
     networks:
       - niad-net
+    command: npm run dev
+    volumes:
+      # Espelha o código-fonte local para dentro do container
+      - ./services/ms-telegram/src:/usr/src/app/src
+      # Um "volume anônimo" para node_modules, 
+      # para evitar que o local sobrescreva o do container
+      - /usr/src/app/node_modules
 
   # SERVIÇO 2: API Gateway (Gateway Interno / Orquestrador)
   api-gateway:
