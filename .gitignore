@@ -1,2 +1,12 @@
+# Dependências
+**/node_modules/
+*.pyc
+**/__pycache__/
+**/venv/
+
+# Arquivos de Segredos
 .env
-node_modules
+
+# Arquivos de OS
+.DS_Store
+Thumbs.db

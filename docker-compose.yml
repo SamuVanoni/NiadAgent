@@ -1,0 +1,61 @@
+services:
+  # SERVIÇO 1: MS Telegram (Gateway Externo)
+  ms-telegram:
+    build: ./services/ms-telegram
+    container_name: ms-telegram
+    restart: unless-stopped
+    ports:
+      # Expõe a porta 8443 para o webhook do Telegram
+      - "8443:8080"
+    environment:
+      # Injeta os segredos do .env
+      - PORT=8080
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
+      - TELEGRAM_SECRET_TOKEN=${TELEGRAM_SECRET_TOKEN}
+      # Endereço do nosso Gateway Interno
+      - API_GATEWAY_URL=http://api-gateway:8080
+    networks:
+      - niad-net
+
+  # SERVIÇO 2: API Gateway (Gateway Interno / Orquestrador)
+  api-gateway:
+    build: ./services/api-gateway
+    container_name: api-gateway
+    restart: unless-stopped # Mitigação ID 09
+    environment:
+      - PORT=8080
+      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN} # Precisa do token para gerar a URL do áudio
+      # Endereços dos serviços de IA
+      - WHISPER_SERVICE_URL=http://bot-whisper:5000
+      - LANGCHAIN_SERVICE_URL=http://langchain-service:5000
+    networks:
+      - niad-net
+    # Nenhuma porta exposta = Seguro, apenas acessível pela rede interna
+
+  # SERVIÇO 3: Bot Whisper (IA Local)
+  bot-whisper:
+    build: ./services/bot-whisper
+    container_name: bot-whisper
+    restart: unless-stopped
+    environment:
+      - PORT=5000
+    networks:
+      - niad-net
+    # Nenhuma porta exposta
+
+  # SERVIÇO 4: LangChain (IA Remota / RAG)
+  langchain-service:
+    build: ./services/langchain-service
+    container_name: langchain-service
+    restart: unless-stopped
+    environment:
+      - PORT=5000
+      - GEMINI_API_KEY=${GEMINI_API_KEY} # Mitigação ID 07
+    networks:
+      - niad-net
+    # Nenhuma porta exposta
+
+# Rede interna para os serviços se comunicarem
+networks:
+  niad-net:
+    driver: bridge
