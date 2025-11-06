@@ -1,6 +1,6 @@
 // Servidor "Mock" do MS Telegram
 const express = require('express');
-const { securituMiddleware } = require('./security.middleware');
+const { securityMiddleware } = require('./security.middleware');
 const { webhookCallback } = require('./bot');
 const { handleSendReply } = require('./reply.controller');
 
@@ -15,7 +15,7 @@ app.use(express.json());
 // 1. O Express recebe o POST em /webhook
 // 2. O securityMiddleware é executado PRIMEIRO.
 // 3. Se passar, o webhookCallback (do Telegraf) é executado.
-app.post('/webhook', securituMiddleware, webhookCallback);
+app.post('/webhook', securityMiddleware, webhookCallback);
 
 // Rota do Contrato 4 (Resposta do API Gateway)
 // 1. O Express recebe o POST em /send-reply

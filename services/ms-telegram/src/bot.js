@@ -24,10 +24,10 @@ bot.on('voice', async (ctx) => {
 
     try {
         await axios.post(`${API_GATEWAY_URL}/api/v1/process-audio`, voiceData);
-        console.log(`[MS TEelgram] Job enviado ao API Gateway para user ${voiceData.user_id}`);
-        ctx.reply('Seu áudio foi recebido e está snedo processado. Avisarei quando estiver pronto!');
+        console.log(`[MS Telegram] Job enviado ao API Gateway para user ${voiceData.user_id}`);
+        ctx.reply('Seu áudio foi recebido e está sendo processado. Avisarei quando estiver pronto!');
     } catch (err) {
-        console.error("[MS Telegram} Erro ao chamar API GAteway: ", err.response ? err.response.data : err.message);
+        console.error("[MS Telegram] Erro ao chamar API Gateway: ", err.response ? err.response.data : err.message);
         ctx.reply('Desculpe, não consegui iniciar o processamento do seu áudio. Tente novamente.');
     }
 });
