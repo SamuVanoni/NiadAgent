@@ -1,1 +1,5 @@
 Flask==3.0.3
+openai-whisper==20231117
+requests==2.31.0
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch  # Instala versão CPU-only (muito menor que a tradicional)

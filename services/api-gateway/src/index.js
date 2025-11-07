@@ -1,35 +1,54 @@
-// Servidor "Mock" do API Gateway
+// Servidor do API Gateway
 const express = require('express');
+const { audioProcessingLimiter } = require('./middlewares/rateLimit.middleware');
+const { validateAudioRequest } = require('./middlewares/validation.middleware');
+const { getFileUrl, transcribeAudio } = require('./clients/transcription.client');
 const app = express();
 
 const PORT = process.env.PORT || 8080;
-const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
 
 app.use(express.json());
 
 // --- CONTRATO 1 (Receber do MS Telegram) ---
-app.post('/api/v1/process-audio', (req, res) => {
-    const { chat_id, user_id, file_id, file_size_bytes } = req.body;
-    
-    console.log(`[API Gateway] Recebido job para user ${user_id} e file ${file_id}`);
-
-    // MITIGAÇÃO ID 08 (Tamanho): Validar o tamanho
-    if (file_size_bytes > MAX_FILE_SIZE) {
-        console.warn(`[API Gateway] Rejeitado: Arquivo muito grande (${file_size_bytes} bytes)`);
-        return res.status(413).json({ error: "Arquivo de áudio excede o tamanho máximo permitido." });
+// Pipeline: Rate Limit → Validação → Handler
+app.post('/api/v1/process-audio', 
+    audioProcessingLimiter,  // 1. MITIGAÇÃO ID 08: Rate Limit por usuário
+    validateAudioRequest,     // 2. MITIGAÇÃO ID 08: Validação de integridade e tamanho
+    async (req, res) => {     // 3. Handler: Orquestra os contratos 2, 3 e 4
+        const { chat_id, user_id, file_id, file_size_bytes } = req.body;
+        
+        console.log(`[API Gateway] Recebido job para user ${user_id}`);
+        
+        // Responde imediatamente (processamento assíncrono)
+        res.status(200).json({ 
+            status: "received", 
+            message: "Áudio recebido e enfileirado para processamento." 
+        });
+        
+        try {
+            // --- CONTRATO 2: Transcrição (Whisper) ---
+            console.log(`[API Gateway] Iniciando CONTRATO 2 (Transcrição)...`);
+            const file_url = await getFileUrl(file_id);
+            const transcription = await transcribeAudio(file_url);
+            console.log(`[API Gateway] CONTRATO 2 concluído!`);
+            
+            // --- CONTRATO 3: Sumarização (LangChain) ---
+            // TODO: Implementar chamada ao LangChain
+            console.log(`[API Gateway] TODO: CONTRATO 3 (Sumarização)`);
+            
+            // --- CONTRATO 4: Enviar Resposta (MS Telegram) ---
+            // TODO: Implementar envio da resposta ao usuário
+            console.log(`[API Gateway] TODO: CONTRATO 4 (Resposta)`);
+            
+            console.log(`[API Gateway] Processamento concluído para user ${user_id}`);
+            
+        } catch (error) {
+            console.error(`[API Gateway] ERRO no processamento:`, error.message);
+            // TODO: Notificar usuário do erro
+        }
     }
-
-    // MITIGAÇÃO ID 08 (Taxa): O dev implementaria o Rate Limit aqui
-    console.log(`[API Gateway] TODO: Aplicar Rate Limit para user ${user_id}`);
-
-    console.log("[API Gateway] Job validado e enfileirado.");
-    
-    // O dev aqui implementaria a lógica de chamar os Contratos 2, 3 e 4
-    // (Chamar Whisper, depois LangChain, depois MS Telegram)
-    
-    res.status(200).json({ status: "received", message: "Áudio recebido..." });
-});
+);
 
 app.listen(PORT, () => {
-    console.log(`[API Gateway] Serviço "Mock" rodando na porta ${PORT}`);
+    console.log(`[API Gateway] Serviço rodando na porta ${PORT}`);
 });
