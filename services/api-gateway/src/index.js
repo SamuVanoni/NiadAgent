@@ -1,5 +1,6 @@
 // Servidor "Mock" do API Gateway
 const express = require('express');
+const { audioProcessingLimiter } = require('./middlewares/rateLimit.middleware');
 const app = express();
 
 const PORT = process.env.PORT || 8080;
@@ -8,7 +9,8 @@ const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
 app.use(express.json());
 
 // --- CONTRATO 1 (Receber do MS Telegram) ---
-app.post('/api/v1/process-audio', (req, res) => {
+// Aplica o Rate Limit antes do handler
+app.post('/api/v1/process-audio', audioProcessingLimiter, (req, res) => {
     const { chat_id, user_id, file_id, file_size_bytes } = req.body;
     
     console.log(`[API Gateway] Recebido job para user ${user_id} e file ${file_id}`);
@@ -19,8 +21,8 @@ app.post('/api/v1/process-audio', (req, res) => {
         return res.status(413).json({ error: "Arquivo de áudio excede o tamanho máximo permitido." });
     }
 
-    // MITIGAÇÃO ID 08 (Taxa): O dev implementaria o Rate Limit aqui
-    console.log(`[API Gateway] TODO: Aplicar Rate Limit para user ${user_id}`);
+    // MITIGAÇÃO ID 08 (Taxa): Rate Limit aplicado via middleware
+    console.log(`[API Gateway] Rate Limit OK para user ${user_id}`);
 
     console.log("[API Gateway] Job validado e enfileirado.");
     
@@ -31,5 +33,5 @@ app.post('/api/v1/process-audio', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`[API Gateway] Serviço "Mock" rodando na porta ${PORT}`);
+    console.log(`[API Gateway] Serviço rodando na porta ${PORT}`);
 });
