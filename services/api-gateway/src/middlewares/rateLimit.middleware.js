@@ -1,10 +1,10 @@
 const rateLimit = require('express-rate-limit');
 
 // MITIGAÇÃO ID 08: Rate Limit por usuário
-// Limita cada user_id a 5 requisições por 15 minutos
+// Limita cada user_id a 10 requisições por 15 minutos
 const audioProcessingLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 10, // Máximo de 5 requisições por janela
+    max: 10, // Máximo de 10 requisições por janela
     message: { 
         error: "Limite de requisições excedido. Tente novamente mais tarde." 
     },
@@ -12,7 +12,12 @@ const audioProcessingLimiter = rateLimit({
     legacyHeaders: false,
     // Usa o user_id do body como chave para o rate limit
     keyGenerator: (req) => {
-        return req.body.user_id ? req.body.user_id.toString() : req.ip;
+        if (req.body && req.body.user_id) {
+            return `user:${req.body.user_id}`;
+        }
+        // Se não tiver user_id, todas as requisições inválidas compartilham o mesmo limite
+        // Isso protege contra spam de requisições malformadas
+        return 'invalid-requests';
     },
     // Retorna 429 (Too Many Requests)
     statusCode: 429,
