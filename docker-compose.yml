@@ -35,6 +35,10 @@ services:
       # Endereços dos serviços de IA
       - WHISPER_SERVICE_URL=http://bot-whisper:5000
       - LANGCHAIN_SERVICE_URL=http://langchain-service:5000
+
+      # --- Endereço do serviço de Resposta (Upstream) ---
+      # O Gateway precisa saber onde está o MS-Telegram para enviar a resposta
+      - TELEGRAM_SERVICE_URL=http://ms-telegram:8080 
     networks:
       - niad-net
     # Nenhuma porta exposta = Seguro, apenas acessível pela rede interna
