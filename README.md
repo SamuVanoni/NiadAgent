@@ -10,7 +10,7 @@ O objetivo do sistema é realizar a **análise inteligente de áudios de reuniõ
 
 - [Gabriel Fagundes](https://github.com/gabrafo)
 - [Gilmar Filho](https://github.com/gilmar-filho)
-- [João Marcus]()
+- [João Marcus](https://github.com/JoaoMarcus12)
 - [Samuel Vanoni](https://github.com/SamuVanoni)
 
 ## 🚀 Principais Funcionalidades
