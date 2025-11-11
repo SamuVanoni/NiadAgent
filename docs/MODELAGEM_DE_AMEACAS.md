@@ -100,4 +100,4 @@ Nesta etapa, re-avaliamos a probabilidade e o impacto após a implementação da
 
 ## 6. Diagrama de Fluxo (Referência visual)
 
-![Arquitetura do projeto](./assets/Visao_Pre-Modelagem_de_Ameacas.jpg)
+![Arquitetura do projeto em formato de DFD](./assets/DFD.jpg)
