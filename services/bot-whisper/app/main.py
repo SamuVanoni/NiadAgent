@@ -8,6 +8,8 @@ app = Flask(__name__)
 # Inicializa o processador Whisper na inicialização do serviço
 # Modelo "base" = 74MB, bom equilíbrio entre velocidade e precisão
 print("[Bot Whisper] Inicializando serviço...")
+
+# ATENÇÃO: Lembre-se de mudar esta linha para "medium" na máquina Desktop
 whisper_processor = WhisperProcessor(model_name="base")
 print("[Bot Whisper] Serviço pronto para receber requisições!")
 
@@ -54,6 +56,18 @@ def transcribe():
             "error": "Erro ao processar o áudio",
             "details": str(e)
         }), 500
+
+@app.route("/health", methods=["GET"])
+def health_check():
+    """
+    Verifica a saúde do serviço e reporta o modelo carregado.
+    """
+    model_loaded = whisper_processor.get_model_name()
+    return jsonify({
+        "status": "ok",
+        "message": "Whisper service is running.",
+        "model_loaded": model_loaded  # Ex: "base", "medium"
+    }), 200
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

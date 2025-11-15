@@ -12,8 +12,16 @@ class WhisperProcessor:
             model_name: Nome do modelo Whisper a ser usado.
         """
         print(f"[Whisper Processor] Carregando modelo '{model_name}'...")
+        
+        # NOVO: Armazena o nome do modelo na instância
+        self.model_name = model_name
         self.model = whisper.load_model(model_name)
+
         print(f"[Whisper Processor] Modelo '{model_name}' carregado com sucesso!")
+
+    def get_model_name(self):
+        """ Retorna o nome do modelo carregado. """
+        return self.model_name
     
     def download_audio(self, file_url):
         """
