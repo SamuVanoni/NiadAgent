@@ -23,6 +23,9 @@ services:
       # Um "volume anônimo" para node_modules, 
       # para evitar que o local sobrescreva o do container
       - /usr/src/app/node_modules
+    # Perfil: "core" - Sempre essencial para o sistema
+    profiles:
+      - core
 
   # SERVIÇO 2: API Gateway (Gateway Interno / Orquestrador)
   api-gateway:
@@ -33,15 +36,18 @@ services:
       - PORT=8080
       - TELEGRAM_TOKEN=${TELEGRAM_TOKEN} # Precisa do token para gerar a URL do áudio
       # Endereços dos serviços de IA
-      - WHISPER_SERVICE_URL=http://bot-whisper:5000
-      - LANGCHAIN_SERVICE_URL=http://langchain-service:5000
+      - WHISPER_SERVICE_URL=${WHISPER_SERVICE_URL}
+      - LANGCHAIN_SERVICE_URL=${LANGCHAIN_SERVICE_URL}
 
       # --- Endereço do serviço de Resposta (Upstream) ---
       # O Gateway precisa saber onde está o MS-Telegram para enviar a resposta
-      - TELEGRAM_SERVICE_URL=http://ms-telegram:8080 
+      - TELEGRAM_SERVICE_URL=${TELEGRAM_SERVICE_URL}
     networks:
       - niad-net
     # Nenhuma porta exposta = Seguro, apenas acessível pela rede interna
+    # Perfil: "core" - Sempre essencial para o sistema
+    profiles:
+      - core
 
   # SERVIÇO 3: Bot Whisper (IA Local)
   bot-whisper:
@@ -50,11 +56,19 @@ services:
     restart: unless-stopped
     environment:
       - PORT=5000
+      - PYTHONUNBUFFERED=1
     networks:
       - niad-net
     volumes:
       - whisper-cache:/root/.cache/whisper
     # Nenhuma porta exposta
+    # NOVO: Expondo a porta para acesso via Tailscale (se rodar no Xeon)
+    # ou para comunicação local (se rodar no note)
+    ports:
+      - "5000:5000"
+    # Perfil: "local-whisper" - Opcional, usado apenas no Plano B
+    profiles:
+      - local-whisper
 
   # SERVIÇO 4: LangChain (IA Remota / RAG)
   langchain-service:
@@ -67,6 +81,9 @@ services:
     networks:
       - niad-net
     # Nenhuma porta exposta
+    # Perfil: "core" - Sempre essencial para o sistema
+    profiles:
+      - core
 
 # Rede interna para os serviços se comunicarem
 networks:
