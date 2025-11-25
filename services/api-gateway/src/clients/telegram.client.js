@@ -13,9 +13,7 @@ const TELEGRAM_SERVICE_URL = process.env.TELEGRAM_SERVICE_URL || 'http://localho
  * @param {string} text - O texto da mensagem (resumo ou erro).
  * @returns {Promise<void>}
  */
-async function sendTelegramMessage(chat_id, text) {
-    // CORREÇÃO: Endpoint e Request Body atualizados conforme o contrato.
-    
+async function sendTelegramMessage(chat_id, text) {    
     // Endpoint correto do contrato
     const endpoint = `${TELEGRAM_SERVICE_URL}/send-reply`; 
     

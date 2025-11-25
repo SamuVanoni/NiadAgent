@@ -15,7 +15,7 @@ Objetivo: gerar um PDF a partir de um template DOCX preenchido com os dados gera
 2) API Gateway -> LangChain (sem mudança)
    - Recebe `summary` (string) como resposta de sumarização.
 
-3) API Gateway -> Docx-Service (novo contrato)
+3) API Gateway -> Docx-Service
    - POST `/generate` com body JSON:
      {
        "template_name": "summary_template.docx",

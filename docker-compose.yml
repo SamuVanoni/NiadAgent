@@ -64,7 +64,7 @@ services:
     volumes:
       - whisper-cache:/root/.cache/whisper
     # Nenhuma porta exposta
-    # NOVO: Expondo a porta para acesso via Tailscale (se rodar no Xeon)
+    # Expondo a porta para acesso via Tailscale (se rodar no Xeon)
     # ou para comunicação local (se rodar no note)
     ports:
       - "5000:5000"

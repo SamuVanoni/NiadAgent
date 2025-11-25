@@ -213,7 +213,7 @@ Notas operacionais:
 - O `ms-telegram` envia `message_date` (timestamp unix) no payload inicial para o `API Gateway`. O `API Gateway` usa esse timestamp, quando disponível, para preencher `data`, `dia`, `mes` (por extenso, minúsculo) e `ano` no objeto `data` enviado ao `docx-service`.
 - Se `message_date` não estiver disponível, o `API Gateway` usa a data corrente do servidor.
 
-## Fluxo resumido (atualizado)
+## Fluxo resumido
 1. `ms-telegram` recebe áudio do Telegram e envia job para `api-gateway` incluindo `message_date`.
 2. `api-gateway` valida e enfileira a requisição; solicita transcrição ao `bot-whisper`.
 3. `api-gateway` envia texto transcrito ao `langchain-service` para gerar `summary`.
