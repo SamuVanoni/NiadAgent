@@ -14,7 +14,6 @@ if not GEMINI_API_KEY:
 # --- 2. Lógica da IA (O "Chain") ---
 
 # 1. Instanciar o LLM (Gemini)
-# VAMOS USAR UM MODELO MAIS RÁPIDO E BARATO, como você sugeriu.
 llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", google_api_key=GEMINI_API_KEY)
 
 # 2. Definir o Prompt Template (Mitigação ID 06)
@@ -44,7 +43,6 @@ print("[LangChain Orchestrator] Chain de sumarização pronto (usando gemini-1.5
 
 
 # --- 5. Função de Interface (O que o main.py vai chamar) ---
-
 def generate_summary(text_input: str) -> str:
     """
     Executa o chain de sumarização com o texto de entrada.
@@ -58,8 +56,8 @@ def generate_summary(text_input: str) -> str:
         # Propaga o erro para o main.py tratar como um 500
         raise e
 
-# --- 6. Lógica de RAG (Respondendo sua pergunta) ---
-# Você está certo sobre "documentos". No futuro, criaríamos outra função aqui:
+# --- 6. Lógica de RAG ---
+# No futuro, criaríamos outra função aqui:
 #
 # def add_document_to_rag(document_text: str, user_id: str):
 #     # 1. Criar vetor

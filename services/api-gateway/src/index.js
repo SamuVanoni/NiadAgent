@@ -26,9 +26,9 @@ app.use(express.json());
  * "qual rota" e "quais funções" chamar, não "como" elas funcionam.
  */
 app.post('/api/v1/process-audio', 
-    audioProcessingLimiter,
-    validateAudioRequest,
-    handleAudioProcessing 
+    audioProcessingLimiter, // Limite de requisições
+    validateAudioRequest, // Limite de tamanho de arquivo
+    handleAudioProcessing // Processamento
 );
 
 // Rota de Health Check
