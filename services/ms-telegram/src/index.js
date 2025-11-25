@@ -2,7 +2,7 @@
 const express = require('express');
 const { securityMiddleware } = require('./security.middleware');
 const { webhookCallback } = require('./bot');
-const { handleSendReply } = require('./reply.controller');
+const { handleSendReply, handleSendFile } = require('./reply.controller');
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -21,6 +21,8 @@ app.post('/webhook', securityMiddleware, webhookCallback);
 // 1. O Express recebe o POST em /send-reply
 // 2. O handleSendReply (do controller) é executado.
 app.post('/send-reply', handleSendReply);
+// Endpoint para receber uma URL de PDF e enviar como documento ao usuário
+app.post('/send-file', handleSendFile);
 
 // Rota de Health Check
 app.get('/health', (req, res) => {
