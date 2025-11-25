@@ -19,11 +19,8 @@ bot.on('voice', async (ctx) => {
         chat_id: ctx.message.chat.id,
         user_id: ctx.message.from.id,
         file_id: ctx.message.voice.file_id,
-        file_size_bytes: ctx.message.voice.file_size
-        ,
+        file_size_bytes: ctx.message.voice.file_size,
         // Timestamp (unix) quando a mensagem foi enviada pelo usuário.
-        // Isso permite que o back-end calcule datas (dia/mês/ano) com base
-        // na hora do envio, conforme solicitado.
         message_date: ctx.message.date
     };
 
