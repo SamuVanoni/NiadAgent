@@ -50,7 +50,7 @@ const handleAudioProcessing = async (req, res) => {
         await sendTelegramMessage(chat_id, summary);
         console.log(`[API Gateway] CONTRATO 4 concluído!`);
 
-        // --- NOVO: Gerar PDF a partir do template DOCX e do resumo ---
+        //  Gerar PDF a partir do template DOCX e do resumo ---
         try {
             console.log(`[API Gateway] Solicitando geração de PDF ao serviço DOCX...`);
 
