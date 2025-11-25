@@ -12,4 +12,4 @@ Coloque o(s) templates nesta pasta e reinicie o serviço para que fiquem dispon�
 
 Observações importantes:
 - Sempre garanta que cada tag Jinja esteja em um único run (sem ser dividida por estilos). Use "Localizar e substituir" no Word para trocar facilmente `[texto]` -> `{{ texto }}`.
-- Para textos com formatação interna dinâmica use `{{r campo }}` e envie um objecto RichText no contexto (docxtpl). Se precisar, eu ajusto o serviço para criar RichText a partir da resposta da IA.
+- Para textos com formatação interna dinâmica use `{{r campo }}` e envie um objecto RichText no contexto (docxtpl).
