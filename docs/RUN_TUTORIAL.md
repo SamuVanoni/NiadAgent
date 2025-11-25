@@ -30,6 +30,19 @@ A seguir existe o tutorial simples e direto para a execução de cada um deles!
         docker compose --profile core logs -f
         ~~~
 
+### Observação: serviço de geração de PDF (docx-service)
+
+- Se você pretende usar a geração de PDF a partir de templates DOCX, adicione o serviço `docx-service` ao perfil que rodará localmente. O `docx-service` depende do LibreOffice dentro do container para converter DOCX -> PDF e pode aumentar o tempo de build.
+
+- Comando para rodar todos os serviços incluindo o `docx-service` e o `bot-whisper` localmente:
+    ```bash
+    docker compose --profile core --profile local-whisper up -d --build
+    ```
+
+- Antes de iniciar, coloque seu template DOCX em `services/docx-service/app/templates/` com o nome sugerido `summary_template.docx`. Use a sintaxe Jinja para os placeholders: `{{ texto }}`, `{{ data }}`, `{{ dia }}`, `{{ mes }}`, `{{ ano }}`. Atenção: cada placeholder deve estar dentro de um único run no Word para evitar fragmentação.
+
+- Após o container subir, o `docx-service` ficará disponível em `http://docx-service:8090` na rede do compose; o endpoint principal é `POST /generate` (ver `docs/PDF_GENERATION.md` para contrato).
+
 ## Usando todos os conteiner na mesma máquina (Plano B)
 
 Caso não seja possível usar o micro serviço remoto, siga os seguintes passos:
