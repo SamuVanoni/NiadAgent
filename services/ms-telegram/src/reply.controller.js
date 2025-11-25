@@ -24,7 +24,6 @@ const handleSendReply = (req, res) => {
 
 module.exports = { handleSendReply };
 
-// Novo endpoint: enviar arquivo (PDF) para o usuário
 const handleSendFile = async (req, res) => {
     const { chat_id, pdf_url, caption } = req.body;
 
@@ -36,7 +35,7 @@ const handleSendFile = async (req, res) => {
     console.log(`[MS Telegram] Recebido Contrato: Enviando arquivo para chat ${chat_id} -> ${pdf_url}`);
 
     try {
-        // Baixa o PDF internamente entre containers (evita passar URL HTTP interna para o Telegram)
+        // Baixa o PDF internamente entre containers
         const resp = await axios.get(pdf_url, { responseType: 'arraybuffer', timeout: 60000 });
         const buffer = Buffer.from(resp.data, 'binary');
 
