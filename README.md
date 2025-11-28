@@ -23,13 +23,17 @@ O **bot** atua como interface principal do sistema, recebendo áudios de reuniõ
 
 Microserviço **local e containerizado**, responsável por converter áudios em texto com o modelo open source **Whisper**, garantindo **privacidade e eficiência** no processamento inicial.
 
-### 🧩 Orquestração RAG (LangChain + API do Gemini)
+### 🧩 Orquestração (LangChain + API do Gemini)
 
-Microserviço de orquestração **RAG (Retrieval-Augmented Generation)**. Utiliza o **LangChain** para gerenciar o fluxo, vetorizar textos e construir prompts, e se conecta à **API do Gemini** (um LLM remoto) para realizar a **sumarização inteligente** e geração de respostas.
+Microserviço de orquestração. Utiliza o **LangChain** para gerenciar o fluxo, vetorizar textos e construir prompts, e se conecta à **API do Gemini** (um LLM remoto) para realizar a **sumarização inteligente** e geração de respostas.
 
 ### 🌐 API Gateway (Express.js)
 
 Coordena o fluxo de dados entre os microserviços, centralizando o controle das requisições e assegurando **escalabilidade, segurança e flexibilidade**.
+
+### 📄 DOCX Service (Python)
+
+Extrai resumo criado pelo orquestrador e constrói um documento em PDF a partir dele, baseando-se em um template pré-estabelecido.
 
 ### 🐳 Containerização com Docker
 
