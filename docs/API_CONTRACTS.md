@@ -25,7 +25,8 @@ Este contrato inicia o fluxo. O `MS Telegram` valida o webhook e encaminha os da
       "chat_id": 123456789,
       "user_id": 987654321,
       "file_id": "AgADBAADbOkxG-dC-UuFqgAB...",
-      "file_size_bytes": 124000
+      "file_size_bytes": 124000,
+      "message_date": 1697049600
     }
     ```
 * **Campos de Segurança:**
@@ -128,3 +129,97 @@ O `API Gateway` envia a resposta final ao `MS Telegram`, que a encaminha ao usu�
       "status": "sent"
     }
     ```
+
+---
+
+## 5. Contrato de Geração de PDF (Docx -> PDF)
+`API Gateway` -> `docx-service`
+
+Quando o sistema deve entregar o resumo também em PDF, o `API Gateway` solicita ao `docx-service` a geração do PDF a partir de um template DOCX preenchido.
+
+* **Serviço de Destino:** `docx-service`
+* **Endpoint:** `POST /generate`
+
+### Request Body (JSON)
+
+```json
+{
+  "template_name": "summary_template.docx",
+  "data": {
+    "texto": "<texto do resumo>",
+    "data": "dd/mm/yyyy",
+    "dia": "9",
+    "mes": "abril",
+    "ano": "2025"
+  }
+}
+```
+
+Notas:
+- `template_name` aponta para um arquivo em `services/docx-service/app/templates/`.
+- As chaves dentro de `data` usam nomenclatura em minúsculas conforme padrão do projeto (`texto`, `data`, `dia`, `mes`, `ano`).
+
+### Success Response (200 OK)
+
+```json
+{
+  "pdf_url": "http://docx-service:8090/files/<id>.pdf"
+}
+```
+
+### Error Responses
+- `400 Bad Request` quando `template_name` ou `data` estiverem faltando ou inválidos.
+- `500 Internal` para erros de geração/conversão.
+
+---
+
+## 6. Contrato de Envio de Arquivo (MS Telegram)
+`API Gateway` -> `MS Telegram` (envio de PDF)
+
+Ao receber `pdf_url` do `docx-service`, o `API Gateway` solicita ao `MS Telegram` que envie o arquivo ao usuário.
+
+* **Serviço de Destino:** `ms-telegram`
+* **Endpoint:** `POST /send-file`
+
+### Request Body (JSON)
+
+```json
+{
+  "chat_id": 123456789,
+  "pdf_url": "http://docx-service:8090/files/<id>.pdf",
+  "caption": "Resumo em PDF"
+}
+```
+
+Notas operacionais:
+- O `ms-telegram` baixa o PDF internamente (entre containers) e faz o upload para o Telegram como `sendDocument`. Isso evita expor URLs internas diretamente ao Telegram e reduz problemas com acesso a endpoints internos.
+- O `ms-telegram` deve validar `chat_id` e `pdf_url` antes de tentar o download.
+
+### Success Response (200 OK)
+
+```json
+{
+  "status": "sent"
+}
+```
+
+### Error Responses
+- `400 Bad Request` para payload inválido.
+- `504`/`502` quando o `ms-telegram` não conseguir baixar o PDF (timeout ou endpoint inacessível).
+
+---
+
+## Observações gerais sobre datas e formato
+- O `ms-telegram` envia `message_date` (timestamp unix) no payload inicial para o `API Gateway`. O `API Gateway` usa esse timestamp, quando disponível, para preencher `data`, `dia`, `mes` (por extenso, minúsculo) e `ano` no objeto `data` enviado ao `docx-service`.
+- Se `message_date` não estiver disponível, o `API Gateway` usa a data corrente do servidor.
+
+## Fluxo resumido
+1. `ms-telegram` recebe áudio do Telegram e envia job para `api-gateway` incluindo `message_date`.
+2. `api-gateway` valida e enfileira a requisição; solicita transcrição ao `bot-whisper`.
+3. `api-gateway` envia texto transcrito ao `langchain-service` para gerar `summary`.
+4. `api-gateway` envia o `summary` em `data.texto` ao `docx-service` via `POST /generate` (inclui campos de data calculados).
+5. `docx-service` responde com `pdf_url` quando o PDF estiver pronto.
+6. `api-gateway` chama `ms-telegram` `POST /send-file` com `chat_id` e `pdf_url`.
+7. `ms-telegram` baixa o PDF internamente e faz upload ao Telegram (sendDocument). O usuário recebe o PDF.
+
+Consistência do contrato é crítica: qualquer mudança nas chaves JSON ou endpoints deve ser refletida aqui.

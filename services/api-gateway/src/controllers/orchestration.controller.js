@@ -1,7 +1,11 @@
 // Importação dos clients que fazem o trabalho pesado
 const { getFileUrl, transcribeAudio } = require('../clients/transcription.client');
 const { summarizeText } = require('../clients/langchain.client');
-const { sendTelegramMessage } = require('../clients/telegram.client');
+const { sendTelegramMessage, sendTelegramFile } = require('../clients/telegram.client');
+const axios = require('axios');
+
+// URL base do serviço que gera PDF a partir de DOCX
+const DOCX_SERVICE_URL = process.env.DOCX_SERVICE_URL || 'http://localhost:8090';
 
 /**
  * Lida com todo o fluxo de processamento de áudio.
@@ -42,9 +46,56 @@ const handleAudioProcessing = async (req, res) => {
         console.log(`[API Gateway] CONTRATO 3 concluído!`);
         
         // --- CONTRATO 4: Enviar Resposta (MS Telegram) ---
-        console.log(`[API Gateway] Iniciando CONTRATO 4 (Resposta)...`);
+        console.log(`[API Gateway] Iniciando CONTRATO 4 (Resposta - texto)...`);
         await sendTelegramMessage(chat_id, summary);
         console.log(`[API Gateway] CONTRATO 4 concluído!`);
+
+        //  Gerar PDF a partir do template DOCX e do resumo ---
+        try {
+            console.log(`[API Gateway] Solicitando geração de PDF ao serviço DOCX...`);
+
+            // Calcula as datas a partir do timestamp da mensagem (se fornecido)
+            const msgTimestamp = req.body.message_date ? Number(req.body.message_date) : null;
+            const when = msgTimestamp ? new Date(msgTimestamp * 1000) : new Date();
+
+            const monthNames = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+            const dia = String(when.getDate());
+            const mes = monthNames[when.getMonth()];
+            const ano = String(when.getFullYear());
+            const data = `${String(when.getDate()).padStart(2,'0')}/${String(when.getMonth()+1).padStart(2,'0')}/${when.getFullYear()}`;
+
+            const docxRequest = {
+                template_name: 'summary_template.docx', // nome do template esperado na pasta templates/
+                data: {
+                    texto: summary,
+                    data,
+                    dia,
+                    mes,
+                    ano
+                }
+            };
+
+            const docxResp = await axios.post(`${DOCX_SERVICE_URL}/generate`, docxRequest, {
+                headers: { 'Content-Type': 'application/json' },
+                timeout: 120000
+            });
+
+            if (docxResp.data && docxResp.data.pdf_url) {
+                console.log(`[API Gateway] PDF gerado em: ${docxResp.data.pdf_url}`);
+                // Envia o PDF ao usuário via MS Telegram
+                await sendTelegramFile(chat_id, docxResp.data.pdf_url, 'Segue o resumo em PDF.');
+                console.log(`[API Gateway] PDF enviado para o usuário ${user_id}`);
+            } else {
+                console.warn('[API Gateway] Resposta inválida do docx-service (pdf_url ausente).');
+            }
+
+        } catch (pdfErr) {
+            console.error('[API Gateway] Erro ao gerar/enviar PDF:', pdfErr.message);
+            // Notifica usuário que PDF falhou, mas o texto já foi enviado
+            try {
+                await sendTelegramMessage(chat_id, 'O resumo foi gerado, mas houve um erro ao criar o PDF.');
+            } catch (_) {}
+        }
         
         console.log(`[API Gateway] Processamento CONCLUÍDO com sucesso para user ${user_id}`);   
 

@@ -13,7 +13,6 @@ class WhisperProcessor:
         """
         print(f"[Whisper Processor] Carregando modelo '{model_name}'...")
         
-        # NOVO: Armazena o nome do modelo na instância
         self.model_name = model_name
         self.model = whisper.load_model(model_name)
 

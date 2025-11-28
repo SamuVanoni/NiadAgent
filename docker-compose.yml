@@ -42,6 +42,8 @@ services:
       # --- Endereço do serviço de Resposta (Upstream) ---
       # O Gateway precisa saber onde está o MS-Telegram para enviar a resposta
       - TELEGRAM_SERVICE_URL=${TELEGRAM_SERVICE_URL}
+      # Endereço do serviço DOCX (gerador de PDF)
+      - DOCX_SERVICE_URL=http://docx-service:8090
     networks:
       - niad-net
     # Nenhuma porta exposta = Seguro, apenas acessível pela rede interna
@@ -62,7 +64,7 @@ services:
     volumes:
       - whisper-cache:/root/.cache/whisper
     # Nenhuma porta exposta
-    # NOVO: Expondo a porta para acesso via Tailscale (se rodar no Xeon)
+    # Expondo a porta para acesso via Tailscale (se rodar no Xeon)
     # ou para comunicação local (se rodar no note)
     ports:
       - "5000:5000"
@@ -82,6 +84,18 @@ services:
       - niad-net
     # Nenhuma porta exposta
     # Perfil: "core" - Sempre essencial para o sistema
+    profiles:
+      - core
+
+  # SERVIÇO 5: Docx -> PDF (gera PDF a partir de template DOCX)
+  docx-service:
+    build: ./services/docx-service
+    container_name: docx-service
+    restart: unless-stopped
+    environment:
+      - PORT=8090
+    networks:
+      - niad-net
     profiles:
       - core
 

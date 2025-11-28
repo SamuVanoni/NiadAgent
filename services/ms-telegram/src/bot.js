@@ -19,7 +19,9 @@ bot.on('voice', async (ctx) => {
         chat_id: ctx.message.chat.id,
         user_id: ctx.message.from.id,
         file_id: ctx.message.voice.file_id,
-        file_size_bytes: ctx.message.voice.file_size
+        file_size_bytes: ctx.message.voice.file_size,
+        // Timestamp (unix) quando a mensagem foi enviada pelo usuário.
+        message_date: ctx.message.date
     };
 
     try {

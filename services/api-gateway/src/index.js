@@ -5,7 +5,6 @@ const express = require('express');
 const { audioProcessingLimiter } = require('./middlewares/rateLimit.middleware');
 const { validateAudioRequest } = require('./middlewares/validation.middleware');
 
-// Importação do nosso novo controlador
 const { handleAudioProcessing } = require('./controllers/orchestration.controller');
 
 const app = express();
