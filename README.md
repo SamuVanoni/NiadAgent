@@ -33,7 +33,7 @@ Coordena o fluxo de dados entre os microserviços, centralizando o controle das 
 
 ### 📄 DOCX Service (Python)
 
-Extrai resumo criado pelo orquestrador e constrói um documento em PDF a partir dele, baseando-se em um template pré-estabelecido.
+Extrai resumo criado pelo orquestrador e constrói um documento em PDF ou DOCX a partir dele, baseando-se em um template pré-estabelecido.
 
 ### 🐳 Containerização com Docker
 

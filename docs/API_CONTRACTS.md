@@ -132,10 +132,10 @@ O `API Gateway` envia a resposta final ao `MS Telegram`, que a encaminha ao usu�
 
 ---
 
-## 5. Contrato de Geração de PDF (Docx -> PDF)
+## 5. Contrato de Geração de Arquivo (Docx -> DOCX/PDF)
 `API Gateway` -> `docx-service`
 
-Quando o sistema deve entregar o resumo também em PDF, o `API Gateway` solicita ao `docx-service` a geração do PDF a partir de um template DOCX preenchido.
+O `API Gateway` solicita ao `docx-service` a geração de um arquivo a partir de um template DOCX preenchido. O serviço suporta retorno do próprio DOCX (padrão) ou conversão para PDF quando solicitado.
 
 * **Serviço de Destino:** `docx-service`
 * **Endpoint:** `POST /generate`
@@ -151,7 +151,8 @@ Quando o sistema deve entregar o resumo também em PDF, o `API Gateway` solicita
     "dia": "9",
     "mes": "abril",
     "ano": "2025"
-  }
+  },
+  "format": "docx" // opcional: 'docx' (padrão) ou 'pdf'
 }
 ```
 
@@ -163,7 +164,8 @@ Notas:
 
 ```json
 {
-  "pdf_url": "http://docx-service:8090/files/<id>.pdf"
+  "file_url": "http://docx-service:8090/files/<id>.<ext>",
+  "file_type": "docx|pdf"
 }
 ```
 
@@ -174,9 +176,9 @@ Notas:
 ---
 
 ## 6. Contrato de Envio de Arquivo (MS Telegram)
-`API Gateway` -> `MS Telegram` (envio de PDF)
+`API Gateway` -> `MS Telegram` (envio de arquivo gerado)
 
-Ao receber `pdf_url` do `docx-service`, o `API Gateway` solicita ao `MS Telegram` que envie o arquivo ao usuário.
+Ao receber `file_url` e `file_type` do `docx-service`, o `API Gateway` solicita ao `MS Telegram` que envie o arquivo ao usuário.
 
 * **Serviço de Destino:** `ms-telegram`
 * **Endpoint:** `POST /send-file`
@@ -186,14 +188,15 @@ Ao receber `pdf_url` do `docx-service`, o `API Gateway` solicita ao `MS Telegram
 ```json
 {
   "chat_id": 123456789,
-  "pdf_url": "http://docx-service:8090/files/<id>.pdf",
-  "caption": "Resumo em PDF"
+  "file_url": "http://docx-service:8090/files/<id>.<ext>",
+  "file_type": "docx|pdf",
+  "caption": "Resumo"
 }
 ```
 
 Notas operacionais:
-- O `ms-telegram` baixa o PDF internamente (entre containers) e faz o upload para o Telegram como `sendDocument`. Isso evita expor URLs internas diretamente ao Telegram e reduz problemas com acesso a endpoints internos.
-- O `ms-telegram` deve validar `chat_id` e `pdf_url` antes de tentar o download.
+- O `ms-telegram` baixa o arquivo internamente (entre containers) e faz o upload para o Telegram como `sendDocument`.
+- O `ms-telegram` deve validar `chat_id` e `file_url` antes de tentar o download.
 
 ### Success Response (200 OK)
 
@@ -205,21 +208,22 @@ Notas operacionais:
 
 ### Error Responses
 - `400 Bad Request` para payload inválido.
-- `504`/`502` quando o `ms-telegram` não conseguir baixar o PDF (timeout ou endpoint inacessível).
+- `504`/`502` quando o `ms-telegram` não conseguir baixar o arquivo (timeout ou endpoint inacessível).
 
 ---
 
 ## Observações gerais sobre datas e formato
-- O `ms-telegram` envia `message_date` (timestamp unix) no payload inicial para o `API Gateway`. O `API Gateway` usa esse timestamp, quando disponível, para preencher `data`, `dia`, `mes` (por extenso, minúsculo) e `ano` no objeto `data` enviado ao `docx-service`.
-- Se `message_date` não estiver disponível, o `API Gateway` usa a data corrente do servidor.
+- O `ms-telegram` envia `message_date` (timestamp unix) no payload inicial para o `API Gateway` quando disponível.
+- O `api-gateway` agora prioriza a `meeting_date` retornada pelo LLM (quando presente). Se o LangChain/Gemini detectar uma menção temporal na transcrição, ele retorna `meeting_date` em ISO (`YYYY-MM-DD`) e essa data será usada para compor `data`, `dia`, `mes`, `ano` enviados ao `docx-service`.
+- Se o LLM não identificar uma data (ou retornar `null`), o `api-gateway` usa `message_date` como fallback; se `message_date` ausente, usa a data atual.
 
 ## Fluxo resumido
-1. `ms-telegram` recebe áudio do Telegram e envia job para `api-gateway` incluindo `message_date`.
+1. `ms-telegram` recebe áudio do Telegram e envia job para `api-gateway` incluindo `message_date` quando disponível.
 2. `api-gateway` valida e enfileira a requisição; solicita transcrição ao `bot-whisper`.
-3. `api-gateway` envia texto transcrito ao `langchain-service` para gerar `summary`.
-4. `api-gateway` envia o `summary` em `data.texto` ao `docx-service` via `POST /generate` (inclui campos de data calculados).
-5. `docx-service` responde com `pdf_url` quando o PDF estiver pronto.
-6. `api-gateway` chama `ms-telegram` `POST /send-file` com `chat_id` e `pdf_url`.
-7. `ms-telegram` baixa o PDF internamente e faz upload ao Telegram (sendDocument). O usuário recebe o PDF.
+3. `api-gateway` envia texto transcrito ao `langchain-service` para gerar `summary` (e eventualmente `meeting_date`).
+4. `api-gateway` envia o `summary` em `data.texto` ao `docx-service` via `POST /generate` (inclui campos de data calculados; inclui `format` opcional para escolher `docx` ou `pdf`).
+5. `docx-service` responde com `file_url` e `file_type`.
+6. `api-gateway` chama `ms-telegram` `POST /send-file` com `chat_id`, `file_url` e `file_type`.
+7. `ms-telegram` baixa o arquivo internamente e faz upload ao Telegram (sendDocument). O usuário recebe o arquivo.
 
 Consistência do contrato é crítica: qualquer mudança nas chaves JSON ou endpoints deve ser refletida aqui.
