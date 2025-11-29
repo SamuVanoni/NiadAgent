@@ -25,6 +25,8 @@ def generate():
 
     template_name = body.get('template_name')
     data = body.get('data')
+    # format: 'docx' ou 'pdf' (padrão é 'docx')
+    out_format = (body.get('format') or 'docx').lower()
     if not template_name or not data:
         return jsonify({'error': 'Os campos "template_name" e "data" são obrigatórios.'}), 400
 
@@ -47,7 +49,12 @@ def generate():
 
         tpl.save(str(out_docx))
 
-        # Converte para PDF usando LibreOffice
+        # Se o formato solicitado for 'docx', retornamos o DOCX sem converter
+        if out_format == 'docx':
+            docx_url = request.url_root.rstrip('/') + f'/files/{out_docx.name}'
+            return jsonify({'file_url': docx_url, 'file_type': 'docx'}), 200
+
+        # Caso contrário, convertemos para PDF (padrão anterior)
         convert_cmd = [
             'soffice', '--headless', '--convert-to', 'pdf', '--outdir', str(GENERATED_DIR), str(out_docx)
         ]
@@ -60,7 +67,7 @@ def generate():
             return jsonify({'error': 'PDF não foi gerado'}), 500
 
         pdf_url = request.url_root.rstrip('/') + f'/files/{out_pdf.name}'
-        return jsonify({'pdf_url': pdf_url}), 200
+        return jsonify({'file_url': pdf_url, 'file_type': 'pdf'}), 200
 
     except Exception as e:
         print(f"[Docx Service] ERRO ao gerar PDF: {e}")

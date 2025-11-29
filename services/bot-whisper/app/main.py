@@ -10,7 +10,7 @@ app = Flask(__name__)
 print("[Bot Whisper] Inicializando serviço...")
 
 # ATENÇÃO: Lembre-se de mudar esta linha para "medium" na máquina Desktop
-whisper_processor = WhisperProcessor(model_name="large")
+whisper_processor = WhisperProcessor(model_name="medium")
 print("[Bot Whisper] Serviço pronto para receber requisições!")
 
 # --- CONTRATO 2 (Receber do API Gateway) ---

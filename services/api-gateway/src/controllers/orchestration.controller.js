@@ -74,6 +74,9 @@ const handleAudioProcessing = async (req, res) => {
             const ano = String(when.getFullYear());
             const data = `${String(when.getDate()).padStart(2,'0')}/${String(when.getMonth()+1).padStart(2,'0')}/${when.getFullYear()}`;
 
+            // Decide qual formato solicitar ao docx-service: 'docx' (padrão) ou 'pdf'
+            const desiredFormat = req.body.output_format ? String(req.body.output_format).toLowerCase() : 'docx';
+
             const docxRequest = {
                 template_name: 'summary_template.docx', // nome do template esperado na pasta templates/
                 data: {
@@ -82,7 +85,8 @@ const handleAudioProcessing = async (req, res) => {
                     dia,
                     mes,
                     ano
-                }
+                },
+                format: desiredFormat
             };
 
             const docxResp = await axios.post(`${DOCX_SERVICE_URL}/generate`, docxRequest, {
@@ -90,17 +94,20 @@ const handleAudioProcessing = async (req, res) => {
                 timeout: 120000
             });
 
-            if (docxResp.data && docxResp.data.pdf_url) {
-                console.log(`[API Gateway] PDF gerado em: ${docxResp.data.pdf_url}`);
-                // Envia o PDF ao usuário via MS Telegram
-                await sendTelegramFile(chat_id, docxResp.data.pdf_url, 'Segue o resumo em PDF.');
-                console.log(`[API Gateway] PDF enviado para o usuário ${user_id}`);
+            if (docxResp.data && docxResp.data.file_url) {
+                const fileUrl = docxResp.data.file_url;
+                const fileType = docxResp.data.file_type || (desiredFormat === 'pdf' ? 'pdf' : 'docx');
+                console.log(`[API Gateway] Arquivo gerado em: ${fileUrl} (type=${fileType})`);
+
+                // Envia o arquivo gerado ao usuário (nome de arquivo baseado no tipo)
+                await sendTelegramFile(chat_id, fileUrl, `Segue o resumo em ${fileType.toUpperCase()}.`, fileType);
+                console.log(`[API Gateway] Arquivo enviado para o usuário ${user_id}`);
             } else {
-                console.warn('[API Gateway] Resposta inválida do docx-service (pdf_url ausente).');
+                console.warn('[API Gateway] Resposta inválida do docx-service (file_url ausente).');
             }
 
         } catch (pdfErr) {
-            console.error('[API Gateway] Erro ao gerar/enviar PDF:', pdfErr.message);
+            console.error('[API Gateway] Erro ao gerar/enviar arquivo:', pdfErr.message);
             // Notifica usuário que PDF falhou, mas o texto já foi enviado
             try {
                 await sendTelegramMessage(chat_id, 'O resumo foi gerado, mas houve um erro ao criar o PDF.');

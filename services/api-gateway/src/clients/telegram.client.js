@@ -48,9 +48,9 @@ module.exports = {
 };
 
 // Enviar arquivo (contrato) para o MS-Telegram
-async function sendTelegramFile(chat_id, pdf_url, caption) {
+async function sendTelegramFile(chat_id, file_url, caption, file_type) {
     const endpoint = `${TELEGRAM_SERVICE_URL}/send-file`;
-    const requestBody = { chat_id, pdf_url, caption };
+    const requestBody = { chat_id, file_url, caption, file_type };
 
     try {
         await axios.post(endpoint, requestBody, {
