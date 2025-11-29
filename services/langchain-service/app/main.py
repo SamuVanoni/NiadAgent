@@ -2,6 +2,7 @@
 
 import os
 from flask import Flask, request, jsonify
+import traceback
 from dotenv import load_dotenv
 
 # Carrega .env local (para testes)
@@ -10,6 +11,7 @@ load_dotenv()
 # Importa a FUNÇÃO de lógica do nosso outro arquivo
 # (Lembre-se de criar o arquivo app/__init__.py)
 from .orchestrator import generate_summary
+from datetime import datetime, timezone
 
 # Inicializa o Flask
 app = Flask(__name__)
@@ -32,17 +34,19 @@ def handle_summarize():
 
     try:
         # 2. Chamar a Lógica
-        # O trabalho pesado é feito no orchestrator.py
-        summary = generate_summary(text_input=text_input)
-        
-        # 3. Retornar a Resposta (Seguir o Contrato)
-        return jsonify({"summary": summary})
+        # Passamos a data atual (timezone-aware UTC) para que o LLM possa resolver referências relativas
+        current_date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+        result = generate_summary(text_input=text_input, current_date=current_date)
+
+        # 3. Retornar a Resposta (Seguir o Contrato): summary + meeting_date
+        return jsonify({"summary": result.get('summary'), "meeting_date": result.get('meeting_date')})
 
     except Exception as e:
         print(f"[LangChain Server] ERRO: {e}")
+        print(traceback.format_exc())
         return jsonify({"error": "Falha interna ao processar o resumo."}), 500
 
-# --- Rota de Health Check (CORRIGIDA) ---
+# --- Rota de Health Check ---
 @app.route('/health')
 def health_check():
     """
