@@ -4,7 +4,7 @@ import os
 import tempfile
 
 class WhisperProcessor:
-    def __init__(self, model_name="base"):
+    def __init__(self, model_name="medium"):
         """
         Inicializa o processador Whisper.
         

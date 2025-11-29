@@ -9,7 +9,7 @@ const LANGCHAIN_SERVICE_URL = process.env.LANGCHAIN_SERVICE_URL || 'http://local
  *
  * @param {string} text_to_summarize - O texto completo transcrito pelo Whisper.
  * @param {(string|number)} user_id - O ID do usuário (para mitigação ID 06).
- * @returns {Promise<string>} - O resumo gerado pelo LangChain/Gemini.
+ * @returns {Promise<Object>} - O resultado do LangChain com { summary: string, meeting_date: string|null }.
  */
 async function summarizeText(text_to_summarize, user_id) {
     const endpoint = `${LANGCHAIN_SERVICE_URL}/summarize`;
@@ -31,8 +31,12 @@ async function summarizeText(text_to_summarize, user_id) {
         });
 
         // 3. Valida e retorna o resumo do corpo da resposta
-        if (response.data && response.data.summary) {
-            return response.data.summary;
+        if (response.data && (response.data.summary !== undefined)) {
+            // Pode conter 'meeting_date' ou não
+            return {
+                summary: response.data.summary,
+                meeting_date: response.data.meeting_date || null
+            };
         } else {
             // Se o serviço der 200 OK mas o corpo for inválido
             throw new Error("Resposta inválida do serviço de sumarização. 'summary' não encontrado.");

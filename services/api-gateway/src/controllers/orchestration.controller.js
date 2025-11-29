@@ -42,7 +42,9 @@ const handleAudioProcessing = async (req, res) => {
         
         // --- CONTRATO 3: Sumarização (LangChain) ---
         console.log(`[API Gateway] Iniciando CONTRATO 3 (Sumarização)...`);
-        const summary = await summarizeText(transcription, user_id);
+        const summaryResult = await summarizeText(transcription, user_id);
+        const summary = summaryResult && summaryResult.summary ? summaryResult.summary : '';
+        const meeting_date_from_llm = summaryResult && summaryResult.meeting_date ? summaryResult.meeting_date : null;
         console.log(`[API Gateway] CONTRATO 3 concluído!`);
         
         // --- CONTRATO 4: Enviar Resposta (MS Telegram) ---
@@ -54,9 +56,17 @@ const handleAudioProcessing = async (req, res) => {
         try {
             console.log(`[API Gateway] Solicitando geração de PDF ao serviço DOCX...`);
 
-            // Calcula as datas a partir do timestamp da mensagem (se fornecido)
-            const msgTimestamp = req.body.message_date ? Number(req.body.message_date) : null;
-            const when = msgTimestamp ? new Date(msgTimestamp * 1000) : new Date();
+            // Decide a data da reunião: primeiro usa o valor identificado pelo LLM,
+            // caso contrário usa o timestamp da mensagem do Telegram (se fornecido),
+            // senão usa a data atual.
+            let when = null;
+            if (meeting_date_from_llm) {
+                // meeting_date_from_llm expected as 'YYYY-MM-DD'
+                when = new Date(meeting_date_from_llm + 'T00:00:00');
+            } else {
+                const msgTimestamp = req.body.message_date ? Number(req.body.message_date) : null;
+                when = msgTimestamp ? new Date(msgTimestamp * 1000) : new Date();
+            }
 
             const monthNames = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
             const dia = String(when.getDate());
