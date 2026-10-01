@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 # Um lugar só para o nome do modelo: ele era repetido na instanciação e no log de
 # inicialização, e os dois ficaram fora de sincronia (o log anunciava uma versão que o
 # serviço não estava usando).
-MODELO = "gemini-2.5-flash"
+MODELO = "gemini-3.8-flash"
 
 # --- 1. Configuração e Segurança (Mitigação ID 07) ---
 # Falhar aqui, na importação do módulo, é deliberado. Com um print o serviço subia
