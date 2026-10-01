@@ -6,6 +6,63 @@ Temos duas opções para rodar o projeto:
 
 A seguir existe o tutorial simples e direto para a execução de cada um deles!
 
+## Antes de tudo: o `.env` e o webhook
+
+Subir os containers **não é suficiente** para o bot responder. Faltam duas coisas, e a
+segunda não estava documentada aqui: sem ela os quatro serviços sobem saudáveis, o
+`/health` responde 200 e o bot fica mudo — sem nenhuma pista do motivo nos logs.
+
+### 1. Preencher o `.env`
+
+Copie o `.env.example` para `.env` (ele está no `.gitignore`, não suba por engano) e
+preencha:
+
+| Variável | Onde conseguir |
+|---|---|
+| `TELEGRAM_TOKEN` | No Telegram, com o **@BotFather**. Bot novo: `/newbot`. Bot existente: `/mybots` -> escolher o bot -> *API Token*. Cuidado: `/token` gera outro e **invalida o anterior**. |
+| `TELEGRAM_SECRET_TOKEN` | **Você inventa.** Não se obtém em lugar nenhum: é um segredo compartilhado entre você e o Telegram (Mitigação ID 05). Até 256 caracteres, só `A-Z a-z 0-9 _ -`. |
+| `GEMINI_API_KEY` | https://aistudio.google.com/apikey (Google AI Studio, não o Google Cloud). |
+| `WHISPER_SERVICE_URL` | Depende do modo — ver as duas seções abaixo. |
+| `TELEGRAM_SERVICE_URL` e `LANGCHAIN_SERVICE_URL` | Já vêm corretos no exemplo (nomes internos do Compose). |
+
+### 2. Registrar o webhook no Telegram
+
+O Telegram **não faz polling**: ele empurra cada mensagem com um `POST` para uma URL
+**pública e HTTPS**. Um `localhost` não é alcançável por ele.
+
+1. Exponha o `ms-telegram` (porta 8443 no host, 8080 no container) numa URL pública
+   HTTPS. Qualquer túnel serve — `cloudflared`, `ngrok` etc.
+2. Registre:
+   ~~~
+   curl -X POST "https://api.telegram.org/bot<TELEGRAM_TOKEN>/setWebhook" -d "url=https://SEU-ENDERECO-PUBLICO/webhook" -d "secret_token=<TELEGRAM_SECRET_TOKEN>"
+   ~~~
+   O `secret_token` precisa ser **o mesmo** do `.env`: o Telegram passa a devolvê-lo no
+   cabeçalho `X-Telegram-Bot-Api-Secret-Token`, e o `security.middleware.js` rejeita com
+   401 quem não tiver.
+3. Confira:
+   ~~~
+   curl "https://api.telegram.org/bot<TELEGRAM_TOKEN>/getWebhookInfo"
+   ~~~
+   Olhe `url`, `pending_update_count` e principalmente `last_error_message`.
+4. Ao terminar, libere o bot:
+   ~~~
+   curl "https://api.telegram.org/bot<TELEGRAM_TOKEN>/deleteWebhook"
+   ~~~
+
+O endereço do túnel **muda cada vez que você o sobe**, então o `setWebhook` precisa ser
+refeito a cada sessão de teste.
+
+### 3. Limitações conhecidas na hora de testar
+
+- O bot trata **apenas mensagem de voz** (`bot.on('voice')` em `bot.js`): é preciso
+  **segurar o microfone e falar**. Arquivo de áudio anexado chega ao Telegram como
+  `audio`, para o qual não existe handler — o bot não responde nada.
+- O tier gratuito do Gemini dá **20 requisições por dia, por modelo**. E o cliente do
+  LangChain **reenvia 4 vezes** com backoff quando a chamada falha, então cada erro
+  consome 4 dessas 20.
+
+---
+
 ### Usando o `bot-whisper` em outra máquina (na rede)
 
 - **No .env** : É de extrema importância que a variável `WHISPER_SERVICE_URL` esteja apontando para o link correto (para o *IP:Porta* da máquina destino). Existem dois exemplos para os dois casos.
