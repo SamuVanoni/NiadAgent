@@ -13,6 +13,12 @@ O objetivo do sistema é realizar a **análise inteligente de áudios de reuniõ
 - [João Marcus](https://github.com/JoaoMarcus12)
 - [Samuel Vanoni](https://github.com/SamuVanoni)
 
+> Projeto desenvolvido em grupo, e o histórico de commits detalha a contribuição de cada
+> um. O microserviço `langchain-service` — orquestração com LangChain, integração com a
+> API do Gemini e as mitigações de injeção de prompt no prompt de sistema — foi
+> implementado por [Samuel Vanoni](https://github.com/SamuVanoni). A modelagem de ameaças
+> (`docs/MODELAGEM_DE_AMEACAS.md`) é de autoria coletiva.
+
 ## 🚀 Principais Funcionalidades
 
 ### 🤖 Integração via Telegram
@@ -25,7 +31,7 @@ Microserviço **local e containerizado**, responsável por converter áudios em 
 
 ### 🧩 Orquestração (LangChain + API do Gemini)
 
-Microserviço de orquestração. Utiliza o **LangChain** para gerenciar o fluxo, vetorizar textos e construir prompts, e se conecta à **API do Gemini** (um LLM remoto) para realizar a **sumarização inteligente** e geração de respostas.
+Microserviço de orquestração. Utiliza o **LangChain** para gerenciar o fluxo e construir prompts, e se conecta à **API do Gemini** (um LLM remoto) para realizar a **sumarização inteligente** e geração de respostas.
 
 ### 🌐 API Gateway (Express.js)
 

@@ -1,6 +1,8 @@
 # --- services/langchain-service/app/main.py ---
 
+import logging
 import os
+
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 
@@ -8,8 +10,13 @@ from dotenv import load_dotenv
 load_dotenv() 
 
 # Importa a FUNÇÃO de lógica do nosso outro arquivo
-# (Lembre-se de criar o arquivo app/__init__.py)
 from .orchestrator import generate_summary
+
+logging.basicConfig(
+    level=os.environ.get("LOG_LEVEL", "INFO"),
+    format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 # Inicializa o Flask
 app = Flask(__name__)
@@ -28,7 +35,7 @@ def handle_summarize():
     user_id = data['user_id']
     
     # Log de segurança (Mitigação ID 06)
-    print(f"[LangChain Server] Recebido job de sumarização para user {user_id}")
+    logger.info("Recebido job de sumarização (user=%s, %d caracteres).", user_id, len(text_input))
 
     try:
         # 2. Chamar a Lógica
@@ -38,11 +45,13 @@ def handle_summarize():
         # 3. Retornar a Resposta (Seguir o Contrato)
         return jsonify({"summary": summary})
 
-    except Exception as e:
-        print(f"[LangChain Server] ERRO: {e}")
+    except Exception:
+        # O detalhe do erro fica no log; a resposta não vaza stack trace nem o
+        # conteúdo do texto que o cliente mandou.
+        logger.exception("Falha ao processar sumarização (user=%s).", user_id)
         return jsonify({"error": "Falha interna ao processar o resumo."}), 500
 
-# --- Rota de Health Check (CORRIGIDA) ---
+# --- Rota de Health Check ---
 @app.route('/health')
 def health_check():
     """
@@ -53,5 +62,8 @@ def health_check():
 # --- Iniciar o Servidor ---
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    # debug=True é ótimo para dev local e fará o "hot-reload" do Python
-    app.run(host='0.0.0.0', port=port, debug=True)
+    # debug NUNCA fica ligado por padrão: o debugger do Werkzeug expõe um console
+    # que executa código no container. Para ter hot-reload em dev, rode com
+    # FLASK_DEBUG=1.
+    debug = os.environ.get('FLASK_DEBUG', '').lower() in ('1', 'true', 'yes')
+    app.run(host='0.0.0.0', port=port, debug=debug)
