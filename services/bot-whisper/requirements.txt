@@ -1,5 +1,8 @@
 Flask==3.0.3
-openai-whisper==20231117
+# A versao importa: a 20231117 tem um setup.py que faz `import pkg_resources`, e o
+# setuptools 81+ removeu esse modulo. O build do container passou a falhar sem ninguem
+# mexer no codigo. A 20250625 nao usa mais pkg_resources.
+openai-whisper==20250625
 requests==2.31.0
 --extra-index-url https://download.pytorch.org/whl/cpu
 torch  # Instala versão CPU-only (muito menor que a tradicional)
