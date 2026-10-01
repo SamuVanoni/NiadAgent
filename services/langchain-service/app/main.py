@@ -9,14 +9,18 @@ from dotenv import load_dotenv
 # Carrega .env local (para testes)
 load_dotenv() 
 
-# Importa a FUNÇÃO de lógica do nosso outro arquivo
-from .orchestrator import generate_summary
-
+# O logging vem ANTES do import do orchestrator, e a ordem é o conserto de um bug real:
+# o orchestrator loga na importação ("Chain de sumarização pronto"), e enquanto o
+# basicConfig vinha depois essa linha caía no handler of last resort, que só emite
+# WARNING ou acima. O log existia no código e nunca aparecia na saída do container.
 logging.basicConfig(
     level=os.environ.get("LOG_LEVEL", "INFO"),
     format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+# Importa a FUNÇÃO de lógica do nosso outro arquivo
+from .orchestrator import generate_summary
 
 # Inicializa o Flask
 app = Flask(__name__)
