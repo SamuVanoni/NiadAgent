@@ -40,6 +40,17 @@ async function summarizeText(text_to_summarize, user_id) {
 
     } catch (error) {
         if (error.response) {
+            // 503 é a IA remota cheia ou sem cota — condição transitória, do lado do
+            // Google. Vai marcado para o controller poder dizer a verdade ao usuário
+            // ("tente em um minuto") em vez da mensagem de bug. Qualquer outro status
+            // segue como falha genérica.
+            if (error.response.status === 503) {
+                console.warn(`[LangChain Client] IA remota indisponível (503):`, error.response.data);
+                const indisponivel = new Error("O serviço de IA está indisponível no momento.");
+                indisponivel.servicoIndisponivel = true;
+                throw indisponivel;
+            }
+
             // O servidor respondeu com um status de erro (4xx, 5xx)
             console.error(`[LangChain Client] Erro do serviço LangChain (${error.response.status}):`, error.response.data);
             throw new Error(`Serviço de sumarização falhou com status ${error.response.status}`);

@@ -20,7 +20,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Importa a FUNÇÃO de lógica do nosso outro arquivo
-from .orchestrator import generate_summary
+from .orchestrator import ServicoDeIAIndisponivel, generate_summary
 
 # Inicializa o Flask
 app = Flask(__name__)
@@ -48,6 +48,19 @@ def handle_summarize():
         
         # 3. Retornar a Resposta (Seguir o Contrato)
         return jsonify({"summary": summary})
+
+    except ServicoDeIAIndisponivel as indisponivel:
+        # 503, não 500: a IA remota está cheia ou sem cota, e isso passa sozinho. O
+        # gateway distingue os dois pelo status para avisar o usuário com a verdade —
+        # "tente em um minuto" em vez de "a equipe técnica já foi notificada".
+        # `Retry-After` é o cabeçalho padrão para dizer QUANDO voltar (RFC 9110);
+        # 60s é a janela da cota por minuto do tier gratuito.
+        logger.warning("IA remota indisponível (user=%s): %s", user_id, indisponivel)
+        return (
+            jsonify({"error": "Serviço de IA indisponível no momento.", "retry_after": 60}),
+            503,
+            {"Retry-After": "60"},
+        )
 
     except Exception:
         # O detalhe do erro fica no log; a resposta não vaza stack trace nem o

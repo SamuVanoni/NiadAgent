@@ -52,9 +52,16 @@ const handleAudioProcessing = async (req, res) => {
         console.error(`[API Gateway] ERRO no processamento (user ${user_id}):`, error.message);
         
         // --- Notificação de Erro (Contrato 4 de Falha) ---
-        // Tenta notificar o usuário sobre o erro
+        // Tenta notificar o usuário sobre o erro.
+        // Duas mensagens, porque são duas situações diferentes: IA remota cheia é
+        // transitória e o usuário resolve sozinho tentando de novo; qualquer outra
+        // falha é nossa. Dizer "a equipe técnica já foi notificada" para a primeira
+        // manda o usuário esperar por um conserto que não vai acontecer, e some com o
+        // único retorno acionável que ele tinha.
         try {
-            const friendlyErrorMessage = "Desculpe, ocorreu um erro ao processar seu áudio. A equipe técnica já foi notificada.";
+            const friendlyErrorMessage = error.servicoIndisponivel
+                ? "O serviço de IA está sobrecarregado agora. Reenvie seu áudio em um minuto — sua mensagem não foi perdida, só não consegui resumir."
+                : "Desculpe, ocorreu um erro ao processar seu áudio. A equipe técnica já foi notificada.";
             await sendTelegramMessage(chat_id, friendlyErrorMessage);
             console.log(`[API Gateway] Usuário ${user_id} notificado sobre o erro.`);
         } catch (notifyError) {
