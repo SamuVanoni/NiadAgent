@@ -11,7 +11,7 @@ Este documento apresenta a modelagem de ameaças do projeto NIAD, desenvolvida p
 | 03 | **MS Telegram**         | Gateway de mensagens para validação e roteamento         | Payload das mensagens, comandos do usuário, token do Bot Telegram                                             |
 | 04 | **API Gateway**         | Orquestrador de solicitações e agregação de respostas    | Solicitações agregadas, respostas, dados de controle                                                          |
 | 05 | **Bot Whisper**         | Agente de IA local responsável pela transcrição de áudio | Áudios recebidos, transcrições de áudio                                                                       |
-| 06 | **LangChain**           | Microserviço de orquestração RAG                         | Prompts, dados vetorizados, histórico de conversas, API Key do Gemini                                         |
+| 06 | **LangChain**           | Microserviço de orquestração de prompts (sumarização)    | Prompt de sistema, texto transcrito em trânsito, API Key do Gemini                                            |
 | 07 | **API Gemini**          | Agente de IA remoto para geração de texto e sumarização  | Prompt de entrada, texto gerado para sumarização, resultados                                                  |
 | 08 | **Rede Interna Docker** | Segmentação dos microserviços                            | Configurações de containers, isolamento de rede, dados transitando entre microserviços, variáveis de ambiente |
 
