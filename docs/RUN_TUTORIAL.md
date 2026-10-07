@@ -57,9 +57,18 @@ refeito a cada sessão de teste.
 - O bot trata **apenas mensagem de voz** (`bot.on('voice')` em `bot.js`): é preciso
   **segurar o microfone e falar**. Arquivo de áudio anexado chega ao Telegram como
   `audio`, para o qual não existe handler — o bot não responde nada.
-- O tier gratuito do Gemini dá **20 requisições por dia, por modelo**. E o cliente do
-  LangChain **reenvia 4 vezes** com backoff quando a chamada falha, então cada erro
-  consome 4 dessas 20.
+- O tier gratuito do Gemini tem **duas** cotas, e a que mais incomoda testando é a por
+  minuto: **5 requisições por minuto, por modelo** (quota
+  `GenerateRequestsPerMinutePerProjectPerModel-FreeTier`), além do limite diário. O
+  `max_retries` padrão do cliente do LangChain é **6**, então uma única mensagem de voz
+  estourava a cota por minuto sozinha — o retry que existia para dar resiliência era o
+  que produzia o 429. Hoje o `orchestrator.py` usa **1 tentativa por modelo** e cai para
+  o próximo da lista `MODELOS`, então uma mensagem custa no máximo 3 chamadas.
+- **Modelo sobrecarregado é comum e não é erro seu.** O Gemini devolve **503 "high
+  demand"** quando o modelo está cheio; é transitório e do lado do Google. Vale saber
+  distinguir os três: **503** sobrecarga (passa sozinho), **429** cota (espere a janela),
+  **404** modelo que a sua chave não alcança (aí sim é configuração). Com o fallback, o
+  bot sobrevive aos dois primeiros desde que algum modelo da lista responda.
 
 ---
 
